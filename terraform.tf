@@ -7,14 +7,14 @@ terraform {
   }
 }
 
-# Configure the AWS Provider
+# Configure the AWS Provider and Region
 provider "aws" {
   region = "us-east-2"
 }
 
 
 resource "aws_instance" "minecraftec2" {
-  ami                    = data.aws_ami.windows.id
+  ami                    = data.aws_ami.linux.id
   # need to be at least t2.medium for 4-5 players
   instance_type          = "t2.medium"
   vpc_security_group_ids = [aws_security_group.MinecraftRDP.id]
@@ -22,14 +22,26 @@ resource "aws_instance" "minecraftec2" {
 }
 
 
-data "aws_ami" "windows" {
+# # windows AMI
+# data "aws_ami" "windows" {
+#   # if more than 1 resource is returned, use the most recent version
+#   most_recent = true
+#   filter {
+#     name   = "name"
+#     values = ["Windows_Server-2019-English-Full-Base-*"]
+#   }
+#   owners = ["amazon"]
+# }
+
+#linux AMI
+data "aws_ami" "linux" {
   # if more than 1 resource is returned, use the most recent version
   most_recent = true
   filter {
     name   = "name"
-    values = ["Windows_Server-2019-English-Full-Base-*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
   }
-  owners = ["amazon"]
+  owners = ["099720109477"]
 }
 
 # 25565 = minecraft ingress port
@@ -46,12 +58,20 @@ resource "aws_security_group" "MinecraftRDP" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  # ingress {
+  #   description = "RDP"
+  #   from_port   = 3389
+  #   to_port     = 3389
+  #   protocol    = "tcp"
+  #   cidr_blocks = ["24.189.4.150/32"]
+  # }
+
   ingress {
-    description = "RDP"
-    from_port   = 3389
-    to_port     = 3389
-    protocol    = "tcp"
-    cidr_blocks = ["24.189.4.150/32"]
+    description = "EC2 instance connect"
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
