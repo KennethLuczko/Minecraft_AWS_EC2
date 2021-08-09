@@ -7,7 +7,6 @@ terraform {
   }
 }
 
-# Configure the AWS Provider and Region
 provider "aws" {
   region = "us-east-2"
 }
@@ -15,12 +14,29 @@ provider "aws" {
 
 resource "aws_instance" "minecraftec2" {
   ami                    = data.aws_ami.linux.id
-  # need to be at least t2.medium for 4-5 players
+  # t2.micro was not enough resources. t2.medium should support about 5 players.
   instance_type          = "t2.medium"
   vpc_security_group_ids = [aws_security_group.MinecraftRDP.id]
   key_name               = aws_key_pair.deployer.id
+    provisioner "remote-exec" {
+    inline = [
+      "sudo apt update",
+      "sudo apt install openjdk-16-jre-headless -y",
+      "mkdir minecraft_server",
+      "cd minecraft_server",
+      "wget https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar",
+      "java -Xms2048M -Xmx2048M -jar server.jar nogui",
+      "sed -i 's/false/true/' eula.txt",
+      "java -jar server.jar -nogui"
+    ]
+    connection {
+    type     = "ssh"
+    user     = "ubuntu"
+    host     = aws_instance.minecraftec2.public_ip
+    private_key = file("C:/Users/Aphro/.ssh/id_rsa")
+      }
+    }
 }
-
 
 # # windows AMI
 # data "aws_ami" "windows" {
@@ -88,4 +104,3 @@ resource "aws_key_pair" "deployer" {
   key_name   = "deployer-key"
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDO+cPL7g/sY7fVuzO8wlmvv1qPyWobvmlmS3Jzp4yWSidl/irsHeJWATSK1uF6fUkrJxFYeR6oPg591ejL0EYEU9SwXyGgIw8EtUf4ye40ULfB8fM2nR9mZUtuyQbvKkpsdmGKlW9aEOv61p+xIEcBfDNPUcoGuNQG7uzMyMFdRN0Ci2S5iEwvHqQ/X56WZszpoX3wcr8fYhWiNuoa1fQPeiaSB8nIrKV+ENoN0x51TVWwCF5W2gSynP2pTJWVmbAVPWGYRqq+ciD++AfOCnpOh1h1z1cQ2x2hJdYxGIqa2gFCOzGVJSZxTHfYxTQPlap2sxBwHkSzLlJlOo5x+Ythaw5uqorDUKnttt4RXnlPDtUkrPy3TW0M/XEEMgMeSwhdGu5XP+edPcHoS6k/NQQeogPcTPngf2wKtxwZFXRjaaj3RtfHS40yA9MHDREjHEceiBM0IgnAhhgMTnvawDLWneJ+UCKUc+4rW15rR8SkbMfz5zcNAyIxXpGQPQyV55E= aphro@DESKTOP-MBKSTL4"
 }
-
