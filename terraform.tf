@@ -38,18 +38,6 @@ resource "aws_instance" "minecraftec2" {
     }
 }
 
-# # windows AMI
-# data "aws_ami" "windows" {
-#   # if more than 1 resource is returned, use the most recent version
-#   most_recent = true
-#   filter {
-#     name   = "name"
-#     values = ["Windows_Server-2019-English-Full-Base-*"]
-#   }
-#   owners = ["amazon"]
-# }
-
-#linux AMI
 data "aws_ami" "linux" {
   # if more than 1 resource is returned, use the most recent version
   most_recent = true
@@ -73,14 +61,6 @@ resource "aws_security_group" "MinecraftRDP" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
-  # ingress {
-  #   description = "RDP"
-  #   from_port   = 3389
-  #   to_port     = 3389
-  #   protocol    = "tcp"
-  #   cidr_blocks = ["24.189.4.150/32"]
-  # }
 
   ingress {
     description = "EC2 instance connect"
