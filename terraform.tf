@@ -20,6 +20,7 @@ resource "aws_instance" "minecraftec2" {
   key_name               = aws_key_pair.deployer.id
     provisioner "remote-exec" {
     inline = [
+      "while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done",
       "sudo apt update",
       "sudo apt install openjdk-16-jre-headless -y",
       "mkdir minecraft_server",
